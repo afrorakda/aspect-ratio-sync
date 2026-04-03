@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aspect Ratio Sync</title>
+    
+    <link rel="icon" href="image_66.png">
+    <link rel="apple-touch-icon" href="image_66.png">
+
+    <style>
+        :root {
+            --main: #333;
+            --bg: #fff;
+            --accent: #eee;
+            --input-bg: #fafafa;
+            --radius: 15px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
+        .subtitle { font-size: 0.85rem; color: #666; font-weight: 500; margin-bottom: 30px; }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .preset-btn {
+            background: var(--input-bg);
+            border: 2px solid var(--accent);
+            border-radius: var(--radius);
+            padding: 12px 5px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+            -webkit-appearance: none;
+        }
+        .preset-btn.active {
+            border-color: var(--main);
+            background: var(--main);
+            color: #fff;
+        }
+
+        .calc-group {
+            background: var(--input-bg);
+            padding: 25px;
+            border-radius: var(--radius);
+            margin-bottom: 25px;
+        }
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .input-row:last-child { margin-bottom: 0; }
+        .label { font-weight: 800; font-size: 0.8rem; width: 50px; text-align: left; }
+        
+        input[type="number"] {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid var(--accent);
+            border-radius: var(--radius);
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--main) !important;
+            background: #fff;
+            outline: none;
+            -webkit-appearance: none;
+            -webkit-text-fill-color: var(--main) !important;
+            opacity: 1 !important;
+        }
+
+        .ratio-custom {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+        .custom-val {
+            width: 60px;
+            padding: 10px;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 800;
+            background: #fff;
+        }
+
+        footer { margin-top: 50px; font-size: 11px; color: #aaa; line-height: 1.8; }
+        footer a { color: inherit; text-decoration: none; }
+        .footer-btns { margin-top: 30px; }
+        .kofi-btn {
+            display: inline-block; background: var(--main); color: #fff;
+            padding: 12px 25px; border-radius: var(--radius);
+            text-decoration: none; font-weight: bold; font-size: 14px; margin-bottom: 12px;
+        }
+        .home-btn {
+            display: block; width: 60%; margin: 0 auto; background: var(--accent);
+            color: var(--main); border: none; padding: 10px;
+            border-radius: var(--radius); font-weight: 700; font-size: 13px; cursor: pointer;
+        }
+
+        #modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100;
+        }
+        .modal-content {
+            background: #fff; width: 85%; max-width: 320px; padding: 30px;
+            border-radius: var(--radius); text-align: left; position: relative;
+        }
+        .close-x { position: absolute; top: 15px; right: 20px; font-size: 20px; color: #ccc; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Aspect Ratio Sync</h1>
+    <p class="subtitle">Sync Width & Height across any ratio.</p>
+
+    <div class="preset-grid">
+        <button class="preset-btn active" onclick="setRatio(16, 9, this)">16:9 (HD)</button>
+        <button class="preset-btn" onclick="setRatio(9, 16, this)">9:16 (SNS)</button>
+        <button class="preset-btn" onclick="setRatio(4, 5, this)">4:5 (Insta)</button>
+        <button class="preset-btn" onclick="setRatio(1, 1, this)">1:1 (Square)</button>
+        <button class="preset-btn" onclick="setRatio(4, 3, this)">4:3 (SD)</button>
+        <button class="preset-btn" onclick="setRatio(21, 9, this)">21:9 (Cinema)</button>
+    </div>
+
+    <div class="calc-group">
+        <div class="input-row">
+            <span class="label">Width</span>
+            <input type="number" id="width" value="1920" oninput="sync('w')">
+        </div>
+        <div class="input-row">
+            <span class="label">Height</span>
+            <input type="number" id="height" value="1080" oninput="sync('h')">
+        </div>
+        
+        <div class="ratio-custom">
+            <span>Ratio:</span>
+            <input type="number" id="rW" value="16" class="custom-val" oninput="sync('w')">
+            <span>:</span>
+            <input type="number" id="rH" value="9" class="custom-val" oninput="sync('h')">
+        </div>
+    </div>
+
+    <div class="footer-btns">
+        <a href="https://ko-fi.com/afrorakda" target="_blank" class="kofi-btn">☕️buy me a coffee</a>
+        <button class="home-btn" onclick="showModal()">Add to Home Screen</button>
+    </div>
+
+    <footer>
+        <div>No login / No tracking / No ads / Browser only</div>
+        <div><a href="https://afrorakda.com/privacy/">Privacy Policy</a> / afrorakda © 2026</div>
+    </footer>
+</div>
+
+<div id="modal" onclick="hideModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="close-x" onclick="hideModal()">×</span>
+        <h3>📱 Install</h3>
+        <p>Add to your home screen.</p>
+        <p>🍏 <strong>iPhone (Safari):</strong><br>Tap Share, then Add to Home Screen.</p>
+        <p>🤖 <strong>Android (Chrome):</strong><br>Tap Menu (⋮), then Add to Home Screen.</p>
+    </div>
+</div>
+
+<script>
+    const wInput = document.getElementById('width');
+    const hInput = document.getElementById('height');
+    const rWInput = document.getElementById('rW');
+    const rHInput = document.getElementById('rH');
+
+    function setRatio(w, h, btn) {
+        rWInput.value = w;
+        rHInput.value = h;
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        sync('w');
+    }
+
+    function sync(lastChanged) {
+        const rw = parseFloat(rWInput.value) || 1;
+        const rh = parseFloat(rHInput.value) || 1;
+        
+        if (lastChanged === 'w') {
+            const w = parseFloat(wInput.value) || 0;
+            hInput.value = Math.round((w * rh) / rw);
+        } else {
+            const h = parseFloat(hInput.value) || 0;
+            wInput.value = Math.round((h * rw) / rh);
+        }
+    }
+
+    function showModal() { document.getElementById('modal').style.display = 'flex'; }
+    function hideModal() { document.getElementById('modal').style.display = 'none'; }
+</script>
+
+</body>
+</html>
