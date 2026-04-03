@@ -37,20 +37,21 @@
         }
 
         h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
-        .subtitle { font-size: 0.85rem; color: #666; font-weight: 500; margin-bottom: 30px; }
+        .subtitle { font-size: 0.85rem; color: #666; font-weight: 500; margin-bottom: 25px; }
 
+        /* Ratio Preset Buttons */
         .preset-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 30px;
+            gap: 8px;
+            margin-bottom: 25px;
         }
         .preset-btn {
             background: var(--input-bg);
             border: 2px solid var(--accent);
             border-radius: var(--radius);
-            padding: 12px 5px;
-            font-size: 0.8rem;
+            padding: 10px 2px;
+            font-size: 0.75rem; /* 微調整 */
             font-weight: 800;
             cursor: pointer;
             transition: 0.2s;
@@ -62,24 +63,29 @@
             color: #fff;
         }
 
+        /* Calculator Area */
         .calc-group {
             background: var(--input-bg);
             padding: 25px;
             border-radius: var(--radius);
             margin-bottom: 25px;
         }
-        .input-row {
+        .input-wrapper {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             margin-bottom: 15px;
         }
-        .input-row:last-child { margin-bottom: 0; }
-        .label { font-weight: 800; font-size: 0.8rem; width: 50px; text-align: left; }
+        .input-wrapper:last-child { margin-bottom: 0; }
+        .label { font-weight: 800; font-size: 0.75rem; width: 45px; text-align: left; color: #999; }
+        
+        .input-container { position: relative; flex: 1; }
         
         input[type="number"] {
-            flex: 1;
+            width: 100%;
             padding: 15px;
+            padding-right: 45px;
             border: 2px solid var(--accent);
             border-radius: var(--radius);
             font-size: 1.2rem;
@@ -87,28 +93,65 @@
             color: var(--main) !important;
             background: #fff;
             outline: none;
+            box-sizing: border-box;
             -webkit-appearance: none;
             -webkit-text-fill-color: var(--main) !important;
             opacity: 1 !important;
+            transition: border-color 0.2s;
         }
+        input:focus { border-color: var(--main); }
+        input::placeholder { color: #ccc; -webkit-text-fill-color: #ccc; }
+
+        .clr-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 0.7rem;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 5px;
+            display: none;
+        }
+        .clr-btn.active { display: block; }
 
         .ratio-custom {
             display: flex;
             gap: 10px;
             justify-content: center;
             align-items: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
+            margin-top: 20px;
+            font-size: 0.8rem;
             font-weight: 800;
+            color: #aaa;
         }
         .custom-val {
-            width: 60px;
-            padding: 10px;
+            width: 55px;
+            padding: 8px;
             border: 2px solid var(--accent);
             border-radius: 10px;
             text-align: center;
             font-weight: 800;
             background: #fff;
+            outline: none;
+        }
+        .custom-val:focus { border-color: var(--main); }
+
+        /* Toast message */
+        #toast {
+            position: fixed;
+            bottom: 120px;
+            background: var(--main);
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            display: none;
+            z-index: 1000;
         }
 
         footer { margin-top: 50px; font-size: 11px; color: #aaa; line-height: 1.8; }
@@ -127,7 +170,7 @@
 
         #modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000;
         }
         .modal-content {
             background: #fff; width: 85%; max-width: 320px; padding: 30px;
@@ -140,7 +183,7 @@
 
 <div class="container">
     <h1>Aspect Ratio Sync</h1>
-    <p class="subtitle">Sync Width & Height across any ratio.</p>
+    <p class="subtitle">Tap values to copy. Sync Width & Height.</p>
 
     <div class="preset-grid">
         <button class="preset-btn active" onclick="setRatio(16, 9, this)">16:9 (HD)</button>
@@ -148,26 +191,34 @@
         <button class="preset-btn" onclick="setRatio(4, 5, this)">4:5 (Insta)</button>
         <button class="preset-btn" onclick="setRatio(1, 1, this)">1:1 (Square)</button>
         <button class="preset-btn" onclick="setRatio(4, 3, this)">4:3 (SD)</button>
-        <button class="preset-btn" onclick="setRatio(21, 9, this)">21:9 (Cinema)</button>
+        <button class="preset-btn" onclick="setRatio(21, 9, this)">21:9 (Cin)</button>
     </div>
 
     <div class="calc-group">
-        <div class="input-row">
-            <span class="label">Width</span>
-            <input type="number" id="width" value="1920" oninput="sync('w')">
+        <div class="input-wrapper">
+            <span class="label">WIDTH</span>
+            <div class="input-container">
+                <input type="number" id="width" placeholder="1920" oninput="sync('w')" onclick="copyVal(this)">
+                <button id="clrW" class="clr-btn" onclick="clearInput('w')">clr</button>
+            </div>
         </div>
-        <div class="input-row">
-            <span class="label">Height</span>
-            <input type="number" id="height" value="1080" oninput="sync('h')">
+        <div class="input-wrapper">
+            <span class="label">HEIGHT</span>
+            <div class="input-container">
+                <input type="number" id="height" placeholder="1080" oninput="sync('h')" onclick="copyVal(this)">
+                <button id="clrH" class="clr-btn" onclick="clearInput('h')">clr</button>
+            </div>
         </div>
         
         <div class="ratio-custom">
-            <span>Ratio:</span>
+            <span>Ratio</span>
             <input type="number" id="rW" value="16" class="custom-val" oninput="sync('w')">
             <span>:</span>
             <input type="number" id="rH" value="9" class="custom-val" oninput="sync('h')">
         </div>
     </div>
+
+    <div id="toast">Copied!</div>
 
     <div class="footer-btns">
         <a href="https://ko-fi.com/afrorakda" target="_blank" class="kofi-btn">☕️buy me a coffee</a>
@@ -195,26 +246,52 @@
     const hInput = document.getElementById('height');
     const rWInput = document.getElementById('rW');
     const rHInput = document.getElementById('rH');
+    const clrW = document.getElementById('clrW');
+    const clrH = document.getElementById('clrH');
+    const toast = document.getElementById('toast');
 
     function setRatio(w, h, btn) {
         rWInput.value = w;
         rHInput.value = h;
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        sync('w');
+        if (wInput.value || hInput.value) sync('w');
     }
 
     function sync(lastChanged) {
         const rw = parseFloat(rWInput.value) || 1;
         const rh = parseFloat(rHInput.value) || 1;
         
-        if (lastChanged === 'w') {
-            const w = parseFloat(wInput.value) || 0;
+        clrW.classList.toggle('active', wInput.value);
+        clrH.classList.toggle('active', hInput.value);
+
+        if (lastChanged === 'w' && wInput.value) {
+            const w = parseFloat(wInput.value);
             hInput.value = Math.round((w * rh) / rw);
-        } else {
-            const h = parseFloat(hInput.value) || 0;
+        } else if (lastChanged === 'h' && hInput.value) {
+            const h = parseFloat(hInput.value);
             wInput.value = Math.round((h * rw) / rh);
         }
+        
+        clrW.classList.toggle('active', wInput.value);
+        clrH.classList.toggle('active', hInput.value);
+    }
+
+    function clearInput(target) {
+        wInput.value = '';
+        hInput.value = '';
+        clrW.classList.remove('active');
+        clrH.classList.remove('active');
+        const focusInput = target === 'w' ? wInput : hInput;
+        focusInput.focus();
+    }
+
+    function copyVal(el) {
+        if (!el.value) return;
+        navigator.clipboard.writeText(el.value).then(() => {
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 1000);
+        });
     }
 
     function showModal() { document.getElementById('modal').style.display = 'flex'; }
