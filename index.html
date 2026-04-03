@@ -39,7 +39,6 @@
         h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
         .subtitle { font-size: 0.85rem; color: #666; font-weight: 500; margin-bottom: 25px; }
 
-        /* Ratio Preset Buttons */
         .preset-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -51,7 +50,7 @@
             border: 2px solid var(--accent);
             border-radius: var(--radius);
             padding: 10px 2px;
-            font-size: 0.75rem; /* 微調整 */
+            font-size: 0.75rem;
             font-weight: 800;
             cursor: pointer;
             transition: 0.2s;
@@ -63,7 +62,6 @@
             color: #fff;
         }
 
-        /* Calculator Area */
         .calc-group {
             background: var(--input-bg);
             padding: 25px;
@@ -85,7 +83,7 @@
         input[type="number"] {
             width: 100%;
             padding: 15px;
-            padding-right: 45px;
+            padding-right: 50px;
             border: 2px solid var(--accent);
             border-radius: var(--radius);
             font-size: 1.2rem;
@@ -109,11 +107,11 @@
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #ccc;
-            font-size: 0.7rem;
+            color: #888;
+            font-size: 0.85rem;
             font-weight: 800;
             cursor: pointer;
-            padding: 5px;
+            padding: 8px;
             display: none;
         }
         .clr-btn.active { display: block; }
@@ -140,7 +138,6 @@
         }
         .custom-val:focus { border-color: var(--main); }
 
-        /* Toast message */
         #toast {
             position: fixed;
             bottom: 120px;
@@ -183,7 +180,7 @@
 
 <div class="container">
     <h1>Aspect Ratio Sync</h1>
-    <p class="subtitle">Tap values to copy. Sync Width & Height.</p>
+    <p class="subtitle">Tap values to copy & edit. Sync Width & Height.</p>
 
     <div class="preset-grid">
         <button class="preset-btn active" onclick="setRatio(16, 9, this)">16:9 (HD)</button>
@@ -272,9 +269,6 @@
             const h = parseFloat(hInput.value);
             wInput.value = Math.round((h * rw) / rh);
         }
-        
-        clrW.classList.toggle('active', wInput.value);
-        clrH.classList.toggle('active', hInput.value);
     }
 
     function clearInput(target) {
@@ -288,6 +282,11 @@
 
     function copyVal(el) {
         if (!el.value) return;
+        
+        // Select text and copy
+        el.select();
+        el.setSelectionRange(0, 99999); // For mobile
+
         navigator.clipboard.writeText(el.value).then(() => {
             toast.style.display = 'block';
             setTimeout(() => { toast.style.display = 'none'; }, 1000);
